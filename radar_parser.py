@@ -43,18 +43,19 @@ url = 'http://imd.gov.in/section/dwr/img/caz_chn.gif'       # Image URL.
 fp = r"filter.txt"                                          # Background filter for the image.
 
 def reverse_geocode(coordinates):
-     """
-     Reverse-geocode the input coordinates and return the output as a python dictionary.
+    """
+    Reverse-geocode the input coordinates and return the output as a python dictionary.
+   
+    Uses LocationIQ's reverse-geocoding service. Their API was chosen due to an upper bound
+    of 10,000 free API calls a day.
+    
+    Parameters:
+         coordinates (tuple) : A pair of the form (latitude, longitude)
+        
+    Returns:
+         dict: A dictionary obtained from the JSON response.
+    """
      
-     Uses LocationIQ's reverse-geocoding service. Their API was chosen due to an upper bound
-     of 10,000 free API calls a day.
-     
-     Parameters:
-          coordinates (tuple) : A pair of the form (latitude, longitude)
-          
-     Returns:
-          dict: A dictionary obtained from the JSON response.
-     """
     reverse_url = "https://us1.locationiq.com/v1/reverse.php"
 
     data = {
@@ -69,6 +70,17 @@ def reverse_geocode(coordinates):
     return json.loads(response.text)
 
 def distance(i, j):
+    """
+    Obtain the geo-coordinates of a point referenced by the radar image's pixel coordinates.
+    
+    Parameters:
+         i (int) : x-coordinate of the pixel.
+         j (int) : y-coordinate of the pixel.
+          
+    Returns:
+         tuple: A pair of coordinates of the form (latitude, longitude).
+    """
+     
     dist = distance_from_centre(i, j)
     lon_shift = dist[0] * lon_per_km
     lat_shift = dist[1] * lat_per_km
@@ -76,9 +88,25 @@ def distance(i, j):
     return (chn[0] + lat_shift, chn[1] + lon_shift)
 
 def distance_from_centre(i, j):
+    # Obtain the pixel coordinates of a point relative to the centre, i.e (250, 250)
+
     return (i - 250, 250 - j)
 
 def load_filter(file_path):
+    """
+    Obtain the pixel-coordinates to be filtered out.
+    
+    Returns a dictionary where all pixel coordinates are mapped to a color. If the pixel in the current image
+    carries the same color, then it forms a part of the background of the image. The dictionary returned helps
+    filter such pixels out.
+    
+    Parameters:
+        file_path (str) : Path of the filter reference text.
+       
+    Returns:
+        dict: A mapping between pixels and background colors.
+    """
+    
     filt = {}
     with open(file_path, "r") as f:
         lines = f.readlines()
@@ -87,21 +115,31 @@ def load_filter(file_path):
         filt[(int(numbers[0]), int(numbers[1]))] = int(numbers[2])
     return filt
 
-filter_out = load_filter(fp)
+filter_out = load_filter(fp)   # Get the mapping between pixels and BG colors.
 
 def color_redness(color):
+    """
+    Get the fraction of red in the RGB format of the color.
+    
+    Used in an older model of the program.
+    """
+
     try:
         return color[0]/sum(color)
     except ZeroDivisionError:
         return 0
 
 def get_image_from_url(url):
+    # Obtain an image from the given URL
+
     r = requests.get(url)
     img = Image.open(BytesIO(r.content))
     #img = img.convert('RGB')
     return img
 
 def smoothen_rgb_image(img):
+    # Smoothen the given RGB image and return it. Not used in current model
+
     w, h = img.size
     data = img.getdata()
     smoothened_data = ndimage.gaussian_filter(data, sigma=1)
@@ -111,11 +149,24 @@ def smoothen_rgb_image(img):
     return image
 
 def get_radar_image_from_url(url):
+    # Get the radar image alone, without the scale and vertical profiles.
+
     img = get_image_from_url(url)
     #img = smoothen_rgb_image(img)
     return img.crop(radar_image_dimensions)
 
 def get_dominant_color(im, dimensions):
+    """
+    Given an image and a dimension box, return the most frequent color within the bounding box.
+    
+    Parameters:
+        im (Image): The image to be processed.
+        dimensions (4-tuple): The bounding box to which the image is cropped.
+        
+    Returns:
+        The most frequently occurring color in the cropped image.
+    """
+
     counts = defaultdict(int)
     im = im.crop(dimensions)
     width, height = im.size
@@ -135,6 +186,18 @@ def get_dominant_color(im, dimensions):
     return color
     
 def filter_reflectivity(im, lower_bound):
+    """
+    Returns a list of co-ordinates where the radar reflectivity is above the input lower bound.
+    
+    Parameters:
+        im (Image) : The radar image.
+        lower_bound (int) : The minimum reflectivity to be captured. 
+                            Reflectivity is proportional to rainfall rates.
+    
+    Returns:
+         List of co-ordinates with radar output greater than the lower-bound.
+    """
+
     #threshold_redness = reflectivity[lower_bound]
     pix = im.load()
     w, h = im.size
