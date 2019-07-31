@@ -11,6 +11,7 @@ import scipy.ndimage as ndimage
 import re
 import json
 
+# Define rainfall intensities corresponding to image color codes.
 reflectivity = {
      73: 60.0,
      109: 57.5,
@@ -31,59 +32,33 @@ reflectivity = {
      3: 20.0
      }
 
-"""
-reflectivity = {
-     60.0: 0.4772727272727273,
-     55.0: 0.6447368421052632,
-     52.5: 0.6435643564356436,
-     50.0: 0.5836065573770491,
-     47.5: 0.5367847411444142,
-     45.0: 0.49884526558891457,
-     42.5: 0.47925311203319504,
-     40.0: 0.35765379113018597,
-     37.5: 0.3333333333333333,
-     35.0: 0.2766295707472178,
-     32.5: 0.2340823970037453,
-     30.0: 0.17824074074074073,
-     27.5: 0.1347708894878706,
-     25.0: 0.10163934426229508,
-     22.5: 0.0594059405940594,
-     20.0: 0.05921052631578947
- }
+# Define constants
 
-redness = {
-     (84, 52, 40): 0.4772727272727273,
-     (98, 45, 9): 0.6447368421052632,
-     (130, 60, 12): 0.6435643564356436,
-     (178, 96, 31): 0.5836065573770491,
-     (197, 121, 49): 0.5367847411444142,
-     (216, 148, 69): 0.49884526558891457,
-     (231, 168, 83): 0.47925311203319504,
-     (250, 236, 213): 0.35765379113018597,
-     (255, 255, 255): 0.3333333333333333,
-     (174, 213, 242): 0.2766295707472178,
-     (125, 181, 228): 0.2340823970037453,
-     (77, 145, 210): 0.17824074074074073,
-     (50, 123, 198): 0.1347708894878706,
-     (31, 96, 178): 0.10163934426229508,
-     (12, 60, 130): 0.0594059405940594,
-     (9, 45, 98): 0.05921052631578947
- }
-   """ 
-
-chennai_radar_coordinates = (13.083911, 80.289676)
-radar_scale_dimensions = (719, 75, 784, 425)
-radar_image_dimensions = (0, 200, 500, 700)
-lat_per_km = 0.008993614533681086
-lon_per_km = 0.009233610341643583
-url = 'http://imd.gov.in/section/dwr/img/caz_chn.gif'
-fp = r"c:/py/radar/filter.txt"
+chennai_radar_coordinates = (13.083911, 80.289676)          # Co-ordinates of the doppler radar site.
+radar_scale_dimensions = (719, 75, 784, 425)                # Image dimensions of the radar image color scale.
+radar_image_dimensions = (0, 200, 500, 700)                 # Image dimensions of the radar image output.
+lat_per_km = 0.008993614533681086                           # Change in latitude per North/South movement equal to 1 km.
+lon_per_km = 0.009233610341643583                           # Change in longitude per East/West movement equal to 1 km.
+url = 'http://imd.gov.in/section/dwr/img/caz_chn.gif'       # Image URL.
+fp = r"filter.txt"                                          # Background filter for the image.
 
 def reverse_geocode(coordinates):
+     """
+     Reverse-geocode the input coordinates and return the output as a python dictionary.
+     
+     Uses LocationIQ's reverse-geocoding service. Their API was chosen due to an upper bound
+     of 10,000 free API calls a day.
+     
+     Parameters:
+          coordinates (tuple) : A pair of the form (latitude, longitude)
+          
+     Returns:
+          dict: A dictionary obtained from the JSON response.
+     """
     reverse_url = "https://us1.locationiq.com/v1/reverse.php"
 
     data = {
-        'key': '3cdd1cff952a92',
+        'key': LOCATIONIQ_API_KEY,
         'lat': str(coordinates[0]),
         'lon': str(coordinates[1]),
         'format': 'json'
