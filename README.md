@@ -1,6 +1,6 @@
 # Radar-Parser
 
-Parses weather radar images and returns a list of places currently under heavy rainfall. The image below shows a sample radar image. The image following the radar image shows the command-line output for this particular image.
+Parses weather radar images and returns a list of places currently under heavy rainfall. The image below shows a sample radar image. The image that follows the radar image shows the command-line output for this particular image. **Each line** of the output is a unique location currently under heavy rain.
 
 ![Sample Radar Image](/images/sample_image.png)
 ![Command-line Output](/images/command_line_output.png)
