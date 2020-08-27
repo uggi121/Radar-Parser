@@ -1,5 +1,8 @@
 # Radar-Parser
+
 Parses weather radar images and returns a list of places currently under heavy rainfall.
+
+[!Sample Radar Image](images/sample_image.gif)
 
 # About
 
