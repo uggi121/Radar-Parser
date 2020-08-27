@@ -39,7 +39,7 @@ radar_scale_dimensions = (719, 75, 784, 425)                # Image dimensions o
 radar_image_dimensions = (0, 200, 500, 700)                 # Image dimensions of the radar image output.
 lat_per_km = 0.008993614533681086                           # Change in latitude per North/South movement equal to 1 km.
 lon_per_km = 0.009233610341643583                           # Change in longitude per East/West movement equal to 1 km.
-url = 'http://imd.gov.in/section/dwr/img/caz_chn.gif'       # Image URL.
+sample_url = 'https://mausam.imd.gov.in/Radar/caz_chn.gif'       # Image URL.
 fp = r"filter.txt"                                          # Background filter for the image.
 
 def reverse_geocode(coordinates):
@@ -59,7 +59,7 @@ def reverse_geocode(coordinates):
     reverse_url = "https://us1.locationiq.com/v1/reverse.php"
 
     data = {
-        'key': LOCATIONIQ_API_KEY,
+        'key': '3cdd1cff952a92',
         'lat': str(coordinates[0]),
         'lon': str(coordinates[1]),
         'format': 'json'
@@ -69,7 +69,7 @@ def reverse_geocode(coordinates):
     
     return json.loads(response.text)
 
-def distance(i, j):
+def convert_pixels_to_coordinates(i, j):
     """
     Obtain the geo-coordinates of a point referenced by the radar image's pixel coordinates.
     
@@ -81,13 +81,13 @@ def distance(i, j):
          tuple: A pair of coordinates of the form (latitude, longitude).
     """
      
-    dist = distance_from_centre(i, j)
+    dist = calculate_distance_from_centre(i, j)
     lon_shift = dist[0] * lon_per_km
     lat_shift = dist[1] * lat_per_km
     chn = chennai_radar_coordinates
     return (chn[0] + lat_shift, chn[1] + lon_shift)
 
-def distance_from_centre(i, j):
+def calculate_distance_from_centre(i, j):
     # Obtain the pixel coordinates of a point relative to the centre, i.e (250, 250)
 
     return (i - 250, 250 - j)
@@ -115,9 +115,7 @@ def load_filter(file_path):
         filt[(int(numbers[0]), int(numbers[1]))] = int(numbers[2])
     return filt
 
-filter_out = load_filter(fp)   # Get the mapping between pixels and BG colors.
-
-def color_redness(color):
+def calculate_color_redness(color):
     """
     Get the fraction of red in the RGB format of the color.
     
@@ -185,7 +183,7 @@ def get_dominant_color(im, dimensions):
     
     return color
     
-def filter_reflectivity(im, lower_bound):
+def filter_reflectivity(im, lower_bound, coordinates_to_filter):
     """
     Returns a list of co-ordinates where the radar reflectivity is above the input lower bound.
     
@@ -206,9 +204,29 @@ def filter_reflectivity(im, lower_bound):
             for j in range(h) 
             if pix[i, j] in reflectivity
             and reflectivity[pix[i, j]] > lower_bound
-            and pix[i, j] != filter_out[(i, j)]]
+            and pix[i, j] != coordinates_to_filter[(i, j)]]
     return result
 
+def main():
+    image = get_radar_image_from_url(sample_url)
+    coordinates_to_filter = load_filter(fp)
+    filtered_image = filter_reflectivity(image, 45, coordinates_to_filter)
+    coordinates = [convert_pixels_to_coordinates(x[0], x[1]) for x in filtered_image]
+    json_results = [reverse_geocode(x) for x in coordinates]
+    #print(json_results)
+    
+    final_results = []
+    
+    for result in json_results:
+        try:
+            final_results.append(result['display_name'])
+        except KeyError:
+            pass
+    
+    places = set(final_results)
+    for place in places:
+        print(place)
 
-
+if __name__ == "__main__":
+    main()
 
