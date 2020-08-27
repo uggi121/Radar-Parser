@@ -7,7 +7,12 @@ This project was driven by my passion for meteorology. After years of manually a
 
 Currently, the project is designed to work with radar images from the doppler weather radar at Chennai, India. The core idea, explained below, is readily extensible. Being easy to adapt, I plan to work on this project to add support to radar imagery across India as well as Singapore.
 
-# Working
+# Execution
+
+* In `constants.py`, enter a valid API key for the LocationIQ free API.
+* Enter `python radar_parser.py` into the command-line when working at the root directory.
+
+# How Does it Work
 
 * The latest radar image is obtained by sending a GET request to the URL of the radar image.
 * The image is then filtered to smoothen the image and remove noise such as mountains, which can erroneously show up as rainfall.
