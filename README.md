@@ -2,7 +2,7 @@
 
 Parses weather radar images and returns a list of places currently under heavy rainfall.
 
-[Sample Radar Image](https://github.com/uggi121/Radar-Parser/blob/master/images/sample_image.png)
+![Sample Radar Image](https://github.com/uggi121/Radar-Parser/blob/master/images/sample_image.png)
 
 # About
 
