@@ -8,7 +8,7 @@ lon_per_km = 0.009233610341643583                           # Change in longitud
 reflectivity_lower_bound = 45                               # Lowest reflectivity that corresponds to heavy rain.
 sample_url = 'https://mausam.imd.gov.in/Radar/caz_chn.gif'       # Image URL.
 fp = r"filter/filter.txt"                                          # Background filter for the image.
-LOCATIONIQ_API_KEY = '3cdd1cff952a92'
+LOCATIONIQ_API_KEY = ''
 
 # Define rainfall intensities corresponding to image color codes.
 reflectivity = {
