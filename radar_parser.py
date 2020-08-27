@@ -59,7 +59,7 @@ def reverse_geocode(coordinates):
     reverse_url = "https://us1.locationiq.com/v1/reverse.php"
 
     data = {
-        'key': '3cdd1cff952a92',
+        'key': LOCATION_IQ_API_KEY,
         'lat': str(coordinates[0]),
         'lon': str(coordinates[1]),
         'format': 'json'
